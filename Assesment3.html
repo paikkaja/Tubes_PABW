@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD Web Service</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .search-form {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            padding: 6px 10px;
+            width: 200px;
+        }
+
+        .search-button {
+            padding: 6px 10px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Fetch data from the REST API
+            $.ajax({
+                url: "http://localhost/tubes_pabw/API-tubes.php",
+                method: "GET",
+                dataType: "json",
+                success: function(data) {
+                    // Handle the response data
+                    // Assuming the data is an array of pencarianproduk objects
+                    data.forEach(function(pencarianproduk) {
+                        // Display the pencarianproduk data in a table or any other desired format
+                        $("#pencarianprodukTable").append(
+                            "<tr>" +
+                            "<td>" + pencarianproduk.id_produk + "</td>" +
+                            "<td>" + pencarianproduk.nama_produk + "</td>" +
+                            "<td>" + pencarianproduk.deskripsi_produk + "</td>" +
+                            "</tr>"
+                        );
+                    });
+                },
+                error: function(xhr, status, error) {
+                    // Handle any error that occurs during the API request
+                    console.log("Error: " + error);
+                }
+            });
+
+            // Search functionality
+            $("#searchForm").on("submit", function(e) {
+                e.preventDefault();
+                var searchValue = $("#searchInput").val().toLowerCase();
+                $("#pencarianprodukTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(searchValue) > -1)
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>pencarian produk Data</h1>
+    <div class="search-form">
+        <form id="searchForm">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search...">
+            <button type="submit" class="search-button">Search</button>
+        </form>
+    </div>
+    <table id="pencarianprodukTable">
+        <thead>
+            <tr>
+                <th>id_produk</th>
+                <th>Nama Produk</th>
+                <th>deskripsi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- pencarianprodu data will be inserted here dynamically -->
+        </tbody>
+    </table>
+</body>
+</html>

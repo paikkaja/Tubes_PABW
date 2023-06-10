@@ -1,0 +1,27 @@
+[
+    {
+        "id_produk": "1",
+        "nama_produk": "Minyak Goreng",
+        "deskripsi_produk": "Minyak dari sumber tanah air"
+    },
+    {
+        "id_produk": "2",
+        "nama_produk": "Kotak Pensil",
+        "deskripsi_produk": "Kotak pensil dari produk berkelas"
+    },
+    {
+        "id_produk": "3",
+        "nama_produk": "Laptop Asus",
+        "deskripsi_produk": "Spek gahar"
+    },
+    {
+        "id_produk": "4",
+        "nama_produk": "Celana jeans",
+        "deskripsi_produk": "Bahan adem sangat langka di dunia"
+    },
+    {
+        "id_produk": "5",
+        "nama_produk": "Sepatu nike",
+        "deskripsi_produk": "real no fake"
+    }
+]
