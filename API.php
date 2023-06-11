@@ -51,7 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         ];
         echo json_encode([$data], JSON_PRETTY_PRINT);
     }
-} else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+} 
+else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     $id_produk = $_GET['id_produk'];
     $nama_produk = $_GET['nama_produk'];
     $deskripsi_produk = $_GET['deskripsi_produk'];

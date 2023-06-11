@@ -1,322 +1,208 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CRUD Web Service</title>
+    <title>Tampilan Data Produk</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <style>
-        /* CSS styles here */
         table {
             border-collapse: collapse;
             width: 100%;
         }
 
         th, td {
-            padding: 8px;
             text-align: left;
+            padding: 8px;
             border-bottom: 1px solid #ddd;
         }
 
-        th {
-            background-color: #f2f2f2;
+        tr:hover {background-color: #f5f5f5;}
+
+        .form-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
 
-        tr:hover {
-            background-color: #f5f5f5;
+        .form-container label {
+            display: inline-block;
+            width: 100px;
+            margin-bottom: 10px;
         }
 
-        .search-form {
-            margin-bottom: 20px;
+        .form-container input[type="text"] {
+            width: 300px;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
 
-        .search-input {
-            padding: 6px 10px;
-            width: 200px;
+        .form-container button {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        .search-button {
-            padding: 6px 10px;
+        .form-container button:hover {
+            background-color: #45a049;
         }
     </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Tampilan Data pencarian produk</h1>
+    <table id="pencarianprodukTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nama Produk</th>
+                <th>Deskripsi</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="form-container">
+        <h2>Tambah Data pencarianproduk</h2>
+        <div>
+            <div>
+                <label for="idInput">ID:</label>
+                <input type="text" id="idInput">
+            </div>
+            <label for="namaprodukInput">Nama produk:</label>
+            <input type="text" id="namaprodukInput">
+        </div>
+        <div>
+            <label for="deskripsiInput">Deskripsi:</label>
+            <input type="text" id="deskripsiInput">
+        </div>
+        
+        <button id="tambahDataProduk">Tambah Data</button>
+    </div>
+
     <script>
         $(document).ready(function() {
-            // Fetch data from the REST API
-            function fetchData() {
+            // Mengambil data dari REST API
+            function getData() {
                 $.ajax({
-                    url: "http://localhost/tubes_pabw/API-tubes.php",
-                    method: "GET",
-                    dataType: "json",
+                    url: 'http://localhost/tubes_pabw/API-tubes.php',
+                    type: 'GET',
+                    dataType: 'json',
                     success: function(data) {
-                        // Handle the response data
-                        // Assuming the data is an array of pencarianproduk objects
-                        data.forEach(function(pencarianproduk) {
-                            // Display the pencarianproduk data in a table or any other desired format
-                            $("#pencarianprodukTable").append(
-                                "<tr>" +
-                                "<td>" + pencarianproduk.id_produk + "</td>" +
-                                "<td>" + pencarianproduk.nama_produk + "</td>" +
-                                "<td>" + pencarianproduk.deskripsi_produk + "</td>" +
-                                "<td><button class='edit-button' data-id='" + pencarianproduk.id_produk + "'>Edit</button></td>" +
-                                "<td><button class='delete-button' data-id='" + pencarianproduk.id_produk + "'>Delete</button></td>" +
-                                "</tr>"
-                            );
-                        });
-
-                        // Add click event listener to edit buttons
-                        $(".edit-button").click(function() {
-                            var id = $(this).data("id");
-                            // Open the update form with pre-filled data
-                            openUpdateForm(id);
-                        });
-
-                        // Add click event listener to delete buttons
-                        $(".delete-button").click(function() {
-                            var id = $(this).data("id");
-                            // Perform delete operation here
-                            deletePencarianProduk(id);
-                        });
+                        // Mengisi tabel dengan data yang diterima
+                        var tableBody = $('#pencarianprodukTable tbody');
+                        tableBody.empty();
+                        for (var i = 0; i < data.length; i++) {
+                            var pencarianproduk = data[i];
+                            var row = "<tr>";
+                            row += "<td>" + pencarianproduk.id_produk + "</td>";
+                            row += "<td>" + pencarianproduk.nama_produk + "</td>";
+                            row += "<td>" + pencarianproduk.deskripsi_produk + "</td>";
+                            row += "<td><button class='updateProduk' data-id='" + pencarianproduk.id_produk + "'>Update</button> <button class='deleteBtn' data-id='" + pencarianproduk.id_produk + "'>Delete</button></td>";
+                            row += "</tr>";
+                            tableBody.append(row);
+                        }
+                        setButtonHandlers();
                     },
                     error: function(xhr, status, error) {
-                        // Handle any error that occurs during the API request
-                        console.log("Error: " + error);
+                        console.error(xhr.responseText);
                     }
                 });
             }
 
-            // Call the fetchData function to populate the table initially
-            fetchData();
+            getData();
 
-            // Search functionality
-            $("#searchForm").on("submit", function(e) {
-                e.preventDefault();
-                var searchValue = $("#searchInput").val().toLowerCase();
-                $("#pencarianprodukTable tbody tr").filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(searchValue) > -1)
-                });
-            });
+            function addData() {
+                var id_produk = $('#idInput').val();
+                var nama_produk = $('#namaprodukInput').val();
+                var deskripsi_produk = $('#deskripsiInput').val();
 
-            // Form validation
-            $("#addForm").submit(function(e) {
-                e.preventDefault();
-                var id = $("#idInput").val().trim();
-                var nama = $("#namaInput").val().trim();
-                var deskripsi = $("#deskripsiInput").val().trim();
+                // Membuat objek data yang akan dikirim
+                var newData = {
+                    id_produk:id_produk,
+                    nama_produk: nama_produk,
+                    deskripsi_produk: deskripsi_produk
+                };
 
-                if (id === "" || nama === "" || deskripsi === "") {
-                    alert("Please fill in all fields.");
-                    return false;
-                }
-
-                // Perform add operation here
-                addPencarianProduk(id, nama, deskripsi);
-
-                // Reset the form fields
-                $("#idInput").val("");
-                $("#namaInput").val("");
-                $("#deskripsiInput").val("");
-            });
-
-            // Function to open the update form with pre-filled data
-            function openUpdateForm(id) {
-                // Fetch the existing data for the given ID from the API
-                // Assuming you have an API endpoint to fetch a specific pencarianproduk data
                 $.ajax({
-                    url: "http://localhost/tubes_pabw/API-tubes.php?id=" + id,
-                    method: "GET",
-                    dataType: "json",
-                    success: function(data) {
-                        // Populate the update form fields with the existing data
-                        $("#updateIdInput").val(data.id_produk);
-                        $("#updateNamaInput").val(data.nama_produk);
-                        $("#updateDeskripsiInput").val(data.deskripsi_produk);
-
-                        // Show the update form
-                        $("#updateFormContainer").show();
-                    },
-                    error: function(xhr, status, error) {
-                        // Handle any error that occurs during the API request
-                        console.log("Error: " + error);
-                    }
-                });
-            }
-
-            // Update form validation
-            $("#updateForm").submit(function(e) {
-                e.preventDefault();
-                var id = $("#updateIdInput").val().trim();
-                var nama = $("#updateNamaInput").val().trim();
-                var deskripsi = $("#updateDeskripsiInput").val().trim();
-
-                if (id === "" || nama === "" || deskripsi === "") {
-                    alert("Please fill in all fields.");
-                    return false;
-                }
-
-                // Perform update operation here
-                updatePencarianProduk(id, nama, deskripsi);
-
-                // Reset the form fields
-                $("#updateIdInput").val("");
-                $("#updateNamaInput").val("");
-                $("#updateDeskripsiInput").val("");
-
-                // Hide the update form
-                $("#updateFormContainer").hide();
-            });
-
-            // Function to perform add operation
-            function addPencarianProduk(id, nama, deskripsi) {
-                // Perform the AJAX request to add a new pencarianproduk
-                $.ajax({
-                    url: "http://localhost/tubes_pabw/API-tubes.php",
-                    method: "POST",
-                    dataType: "json",
-                    data: {
-                        id_produk: id,
-                        nama_produk: nama,
-                        deskripsi_produk: deskripsi
-                    },
+                    url: 'http://localhost/tubes_pabw/API-tubes.php',
+                    type: 'POST',
+                    data: newData,
+                    dataType: 'json',
                     success: function(response) {
-                        // If the add operation is successful, add the new pencarianproduk to the table
-                        $("#pencarianprodukTable").append(
-                            "<tr>" +
-                            "<td>" + response.id_produk + "</td>" +
-                            "<td>" + response.nama_produk + "</td>" +
-                            "<td>" + response.deskripsi_produk + "</td>" +
-                            "<td><button class='edit-button' data-id='" + response.id_produk + "'>Edit</button></td>" +
-                            "<td><button class='delete-button' data-id='" + response.id_produk + "'>Delete</button></td>" +
-                            "</tr>"
-                        );
-
-                        // Add click event listener to the newly added edit button
-                        $(".edit-button[data-id='" + response.id_produk + "']").click(function() {
-                            var id = $(this).data("id");
-                            // Open the update form with pre-filled data
-                            openUpdateForm(id);
-                        });
-
-                        // Add click event listener to the newly added delete button
-                        $(".delete-button[data-id='" + response.id_produk + "']").click(function() {
-                            var id = $(this).data("id");
-                            // Perform delete operation here
-                            deletePencarianProduk(id);
-                        });
+                        getData();
+                        $('#idInput').val('');
+                        $('#namaprodukInput').val('');
+                        $('#deskripsiInput').val('');
                     },
                     error: function(xhr, status, error) {
-                        // Handle any error that occurs during the API request
-                        console.log("Error: " + error);
+                        console.error(xhr.responseText);
                     }
                 });
             }
 
-            // Function to perform update operation
-            function updatePencarianProduk(id, nama, deskripsi) {
-                // Perform the AJAX request to update the existing pencarianproduk
-                $.ajax({
-                    url: "http://localhost/tubes_pabw/API-tubes.php",
-                    method: "PUT",
-                    dataType: "json",
-                    data: {
-                        id_produk: id,
-                        nama_produk: nama,
-                        deskripsi_produk: deskripsi
-                    },
-                    success: function(response) {
-                        // Update the corresponding row in the table with the updated data
-                        $("#pencarianprodukTable tr").each(function() {
-                            var rowId = $(this).find("td:first").text();
-                            if (rowId === response.id_produk) {
-                                $(this).find("td:nth-child(2)").text(response.nama_produk);
-                                $(this).find("td:nth-child(3)").text(response.deskripsi_produk);
-                                return false; // Exit the loop since the row is found and updated
+            $('#tambahDataProduk').click(addData);
+
+            function setButtonHandlers() {
+                $('.updateProduk').click(function() {
+                    var id_produk = $(this).data('id');
+                    var row = $(this).closest('tr');
+                    var nama_produk = row.find('td:nth-child(2)').text();
+                    var deskripsi_produk = row.find('td:nth-child(3)').text();
+
+                    var updateForm = "<td><input type='text' class='updateId' name='id_produk' value='" + id_produk + "'></td>";
+                    updateForm += "<td><input type='text' class='updateNama' name='nama_produk' value='" + nama_produk + "'></td>";
+                    updateForm += "<td><input type='text' class='updateDeskripsi' name='deskripsi_produk' value='" + deskripsi_produk + "'></td>";
+                    updateForm += "<td><button class='saveProduk' data-id='" + id_produk + "'>Save</button></td>";
+
+                    row.html(updateForm);
+                    $('.saveProduk').click(function() {
+                        var id_produk = $(this).data('id');
+                        var row = $(this).closest('tr');
+                        var nama_produk = row.find('.updateNama').val();
+                        var deskripsi_produk = row.find('.updateDeskripsi').val();
+
+                        var updatedData = {
+                            id_produk: id_produk,
+                            nama_produk: nama_produk,
+                            deskripsi_produk: deskripsi_produk
+                        };
+
+                        $.ajax({
+                            url: 'http://localhost/tubes_pabw/API-tubes.php',
+                            type: 'PUT',
+                            data: updatedData,
+                            dataType: 'json',
+                            success: function(response) {
+                                getData();
+                            },
+                            error: function(xhr, status, error) {
+                                console.error(xhr.responseText);
                             }
                         });
-                    },
-                    error: function(xhr, status, error) {
-                        // Handle any error that occurs during the API request
-                        console.log("Error: " + error);
-                    }
+                    });
                 });
-            }
 
-            // Function to perform delete operation
-            function deletePencarianProduk(id) {
-                // Perform the AJAX request to delete the pencarianproduk
-                $.ajax({
-                    url: "http://localhost/tubes_pabw/API-tubes.php?id=" + id,
-                    method: "DELETE",
-                    dataType: "json",
-                    success: function(response) {
-                        // Remove the corresponding row from the table
-                        $("#pencarianprodukTable tr").each(function() {
-                            var rowId = $(this).find("td:first").text();
-                            if (rowId === response.id_produk) {
-                                $(this).remove();
-                                return false; // Exit the loop since the row is removed
-                            }
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        // Handle any error that occurs during the API request
-                        console.log("Error: " + error);
-                    }
+                $('.deleteBtn').click(function() {
+                    var id_produk = $(this).data('id');
+
+                    $.ajax({
+                        url: 'http://localhost/tubes_pabw/API-tubes.php?id_produk=' + id_produk,
+                        type: 'DELETE',
+                        dataType: 'json',
+                        success: function(response) {
+                            getData();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
+                    });
                 });
             }
         });
     </script>
-</head>
-<body>
-    <h1>pencarian produk Data</h1>
-    <div class="search-form">
-        <form id="searchForm">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search...">
-            <button type="submit" class="search-button">Search</button>
-        </form>
-    </div>
-    <table id="pencarianprodukTable">
-        <thead>
-            <tr>
-                <th>id_produk</th>
-                <th>Nama Produk</th>
-                <th>deskripsi</th>
-                <th></th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- pencarianprodu data will be inserted here dynamically -->
-        </tbody>
-    </table>
-
-    <!-- Form Tambah -->
-    <h2>Tambah Produk</h2>
-    <form id="addForm">
-        <label for="idInput">ID Produk:</label>
-        <input type="text" id="idInput" required>
-        <br>
-        <label for="namaInput">Nama Produk:</label>
-        <input type="text" id="namaInput" required>
-        <br>
-        <label for="deskripsiInput">Deskripsi:</label>
-        <input type="text" id="deskripsiInput" required>
-        <br>
-        <button type="submit">Add</button>
-    </form>
-
-    <!-- Form Update -->
-    <div id="updateFormContainer" style="display: none;">
-        <h2>Update Produk</h2>
-        <form id="updateForm">
-            <label for="updateIdInput">ID Produk:</label>
-            <input type="text" id="updateIdInput" readonly>
-            <br>
-            <label for="updateNamaInput">Nama Produk:</label>
-            <input type="text" id="updateNamaInput" required>
-            <br>
-            <label for="updateDeskripsiInput">Deskripsi:</label>
-            <input type="text" id="updateDeskripsiInput" required>
-            <br>
-            <button type="submit">Update</button>
-        </form>
-    </div>
 </body>
 </html>
